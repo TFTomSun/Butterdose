@@ -1,6 +1,8 @@
+use <./Module.scad>
 // Butterdosen-Parameter und beide Module in einer Datei
 // Steuerung: Was soll angezeigt werden?
 zeige_deckel = true;
+deckel_umdrehen = true;
 zeige_boden = true;
 
 // Gemeinsame Variablen
@@ -34,61 +36,34 @@ rast_tiefe = 0.5; // Wie weit die Nase herausragt
 // Die Öffnung zeigt nach oben (z=cover_height_extra)
 // Der Schnitt zum Abtrennen der Überhöhe erfolgt nach dem Druck bei z=cover_height
 module deckel() {
-  difference() {
-    // Außen: Quader mit geschlossener Unterseite bei z=0
-    cube([deckel_aussenlaenge, deckel_aussenbreite, deckel_hoehe], center=false);
-    // Innen: Von oben nach unten ausgeschnitten, sodass unten geschlossen bleibt
-    // Die innere Aussparung beginnt bei z=wandstaerke und reicht bis ganz nach oben
-    translate([wandstaerke, wandstaerke, wandstaerke])
-      cube([deckel_aussenlaenge - 2 * wandstaerke, deckel_aussenbreite - 2 * wandstaerke, deckel_hoehe], center=false);
-    // Die Schnittkante für die finale Deckelhöhe ist bei z=cover_height
-    // (Das kann nach dem Druck einfach abgeschnitten werden)
 
-    rastQuader(deckel_hoehe-2,true);
-  }
+ 
+    // Deckel aushöhlen
+      difference() {
+        // Außen: Quader mit geschlossener Unterseite bei z=0
+        cube([deckel_aussenlaenge, deckel_aussenbreite, deckel_hoehe], center=false);
+        // Innen: Von oben nach unten ausgeschnitten, sodass unten geschlossen bleibt
+        // Die innere Aussparung beginnt bei z=wandstaerke und reicht bis ganz nach oben
+        translate([wandstaerke, wandstaerke, -wandstaerke])
+          cube([deckel_aussenlaenge - 2 * wandstaerke, deckel_aussenbreite - 2 * wandstaerke, deckel_hoehe], center=false);
+       
+        rastQuader(3);
+      }
 }
 
-module rastQuader(hoehe,mirrorVersatz =false) {
+module rastQuader(hoehe) {
   // Rasteinsparungen: 4 Aussparungen an den Seiten, innen, auf Höhe rast_deckel_z
+  versatz = 0.4;
+
   // Rasteinparungen in y-richtung
-  translate([(deckel_innenlaenge - rast_breite) / 2, wandstaerke - rast_tiefe, hoehe +rast_hoehe - wandstaerke])
-    TrapezPrisma(deckel_innenbreite + 2 * rast_tiefe, rast_hoehe, rast_breite, 0.4, "yz",mirrorVersatz);
-  //cube([rast_breite, deckel_innenbreite + 2 * rast_tiefe, rast_hoehe], center=false);
-  // Rasteinparungen in x-richtung
-  translate([wandstaerke - rast_tiefe, (deckel_innenbreite - rast_breite) / 2, hoehe  +rast_hoehe - wandstaerke])
-    TrapezPrisma(deckel_innenlaenge + 2 * rast_tiefe, rast_hoehe, rast_breite, 0.4, "xz",mirrorVersatz);
-
-  //cube([deckel_innenlaenge + 2 * rast_tiefe, rast_breite, rast_hoehe], center=false);
-}
-
-module Ausrichten(basisFlaeche = "xy") {
-  if (basisFlaeche == "yz") {
-    rotate([90, 0, 90]) {
-      children();
-    }
-  } else if (basisFlaeche == "xz") {
-    rotate([90, 0, 0]) {
-      children();
-    }
-  } else if (basisFlaeche == "xy") {
-    children();
+  VolumenKoerper(rast_breite, "yz", deckel_innenlaenge / 2) {
+    translate([wandstaerke - rast_tiefe, hoehe, 0])
+      Trapez(deckel_innenbreite + 2 * rast_tiefe, rast_hoehe, versatz);
   }
-}
-module TrapezPrisma(breite, hoehe, volumenTiefe, xVersatz, basisFlaeche = "xy", mirrorVersatz = false) {
-
-   mirrorZ = mirrorVersatz ? 1 : 0;
-    mirror(v = [0,0,mirrorZ]) 
-  Ausrichten(basisFlaeche) {
-    linear_extrude(height=volumenTiefe) {
-      polygon(
-        [
-          [0, 0], // unten links
-          [breite, 0], // unten rechts
-          [breite - xVersatz, hoehe], // oben rechts
-          [xVersatz, hoehe], // oben links
-        ]
-      );
-    }
+  // Rasteinparungen in x-richtung
+  VolumenKoerper(rast_breite, "xz", -deckel_innenbreite / 2) {
+    translate([wandstaerke - rast_tiefe, hoehe, 0])
+      Trapez(deckel_innenlaenge + 2 * rast_tiefe, rast_hoehe, versatz);
   }
 }
 
@@ -101,7 +76,7 @@ module boden() {
       cube([boden_aussenlaenge, boden_aussenbreite, boden_hoehe], center=false);
 
       translate([-wandstaerke, -wandstaerke, 0]) {
-        rastQuader(2);
+        rastQuader(3);
       }
     }
 
@@ -111,7 +86,11 @@ module boden() {
   }
 }
 
-if (zeige_deckel) deckel();
+if (zeige_deckel){
+  // Deckel umkehren wenn aktiviert, damit die geschlossene Seite unten ist
+  Spiegeln("z",deckel_hoehe, deckel_umdrehen)
+    deckel();
+} 
 if (zeige_boden) {
   if (zeige_deckel) {
     // Boden unter den Deckel verschieben, damit sie nicht kollidieren

@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "leathong.openscad-language-support",
+        "anthropic.claude-code",
+        "scootersoftware.bcompare-vscode"
+    ]
+}

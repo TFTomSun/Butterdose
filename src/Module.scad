@@ -73,7 +73,7 @@ module Hohlquader(aussenLaenge, aussenBreite, aussenHoehe, wandstaerke, tiefe = 
     hoeheFinal = obenOffen == true ?  (tiefeFinal) : (aussenHoehe - tiefeFinal);
     positionZ = obenOffen == true ? aussenHoehe-tiefeFinal : -tiefeFinal;
     translate([wandstaerke, wandstaerke, positionZ])
-      cube([aussenLaenge - 2 * wandstaerke, aussenBreite - 2 * wandstaerke, hoeheFinal+2], center=false);
+      cube([aussenLaenge - 2 * wandstaerke, aussenBreite - 2 * wandstaerke, hoeheFinal+1], center=false);
   }
 }
 

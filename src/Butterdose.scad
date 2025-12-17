@@ -24,8 +24,10 @@ boden_spiel = 0.1; // zusätzliches Spiel, damit Deckel gut passt
 boden_aussenlaenge = deckel_innenlaenge - 2 * boden_spiel;
 boden_aussenbreite = deckel_innenbreite - 2 * boden_spiel;
 boden_hoehe = 7; // 7mm effektive Höhe
-boden_bodenstaerke = 5; // 0,5cm Bodenstärke
-
+boden_bodenstaerke = 6.5; // 0,5cm Bodenstärke
+deckelAuflagePosition = 3; // Höhe der Auflagefläche im Boden
+deckelAuflageHoehe = 2; // Dicke der Auflagefläche im Boden
+deckelAuflageBreite = 3;
 // Rast-Parameter
 rast_hoehe = 2; // Höhe der Rastnase
 rast_breite = 8; // Breite der Rastnase
@@ -39,32 +41,17 @@ module deckel() {
 
  
     // Deckel aushöhlen
-      difference() {
-        // Außen: Quader mit geschlossener Unterseite bei z=0
-        cube([deckel_aussenlaenge, deckel_aussenbreite, deckel_hoehe], center=false);
-        // Innen: Von oben nach unten ausgeschnitten, sodass unten geschlossen bleibt
-        // Die innere Aussparung beginnt bei z=wandstaerke und reicht bis ganz nach oben
-        translate([wandstaerke, wandstaerke, -wandstaerke])
-          cube([deckel_aussenlaenge - 2 * wandstaerke, deckel_aussenbreite - 2 * wandstaerke, deckel_hoehe], center=false);
+      //difference() {
+        Hohlquader( deckel_aussenlaenge,  deckel_aussenbreite,  deckel_hoehe,  wandstaerke);
        
-        rastQuader(3);
-      }
+        //rastQuader(3);
+      //}
 }
 
 module rastQuader(hoehe) {
-  // Rasteinsparungen: 4 Aussparungen an den Seiten, innen, auf Höhe rast_deckel_z
-  versatz = 0.4;
 
-  // Rasteinparungen in y-richtung
-  VolumenKoerper(rast_breite, "yz", deckel_innenlaenge / 2) {
-    translate([wandstaerke - rast_tiefe, hoehe, 0])
-      Trapez(deckel_innenbreite + 2 * rast_tiefe, rast_hoehe, versatz);
-  }
-  // Rasteinparungen in x-richtung
-  VolumenKoerper(rast_breite, "xz", -deckel_innenbreite / 2) {
-    translate([wandstaerke - rast_tiefe, hoehe, 0])
-      Trapez(deckel_innenlaenge + 2 * rast_tiefe, rast_hoehe, versatz);
-  }
+    rastVorichtung(hoehe, rast_breite, rast_tiefe, rast_hoehe, 
+    deckel_innenbreite, deckel_innenlaenge,wandstaerke);
 }
 
 // Boden-Modul
@@ -75,8 +62,9 @@ module boden() {
       // Außen: Hohlquader
       cube([boden_aussenlaenge, boden_aussenbreite, boden_hoehe], center=false);
 
-      translate([-wandstaerke, -wandstaerke, 0]) {
-        rastQuader(3);
+      translate([-wandstaerke, -wandstaerke, deckelAuflagePosition]) {
+         cube([boden_aussenlaenge+deckelAuflageBreite, boden_aussenbreite+deckelAuflageBreite, deckelAuflageHoehe], center=false);
+
       }
     }
 

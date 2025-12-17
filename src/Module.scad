@@ -60,3 +60,29 @@ module VolumenKoerper(volumenTiefe, basisFlaeche = "xy", tiefenVersatz = 0) {
       }
   }
 }
+
+module Hohlquader(aussenLaenge, aussenBreite, aussenHoehe, wandstaerke) {
+  difference() {
+    // Außenquader
+    cube([aussenLaenge, aussenBreite, aussenHoehe], center=false);
+    // Innenquader
+    translate([wandstaerke, wandstaerke, -wandstaerke])
+      cube([aussenLaenge - 2 * wandstaerke, aussenBreite - 2 * wandstaerke, aussenHoehe - wandstaerke], center=false);
+  }
+}
+
+module rastVorichtung(hoehe,rast_breite, rast_tiefe, rast_hoehe, ziel_breite, ziel_laenge,wandstaerke) {
+  // Rasteinsparungen: 4 Aussparungen an den Seiten, innen, auf Höhe rast_deckel_z
+  versatz = 0.4;
+
+  // Rasteinparungen in y-richtung
+  VolumenKoerper(rast_breite, "yz", ziel_laenge / 2) {
+    translate([wandstaerke - rast_tiefe, hoehe, 0])
+      Trapez(ziel_breite + 2 * rast_tiefe, rast_hoehe, versatz);
+  }
+  // Rasteinparungen in x-richtung
+  VolumenKoerper(rast_breite, "xz", -ziel_breite / 2) {
+    translate([wandstaerke - rast_tiefe, hoehe, 0])
+      Trapez(ziel_laenge + 2 * rast_tiefe, rast_hoehe, versatz);
+  }
+}

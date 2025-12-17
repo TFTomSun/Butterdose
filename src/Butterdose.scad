@@ -28,50 +28,35 @@ boden_bodenstaerke = 6.5; // 0,5cm Bodenstärke
 deckelAuflagePosition = 3; // Höhe der Auflagefläche im Boden
 deckelAuflageHoehe = 2; // Dicke der Auflagefläche im Boden
 deckelAuflageBreite = 3;
-// Rast-Parameter
-rast_hoehe = 2; // Höhe der Rastnase
-rast_breite = 8; // Breite der Rastnase
-rast_tiefe = 0.5; // Wie weit die Nase herausragt
+
+// // Rast-Parameter
+// rast_hoehe = 2; // Höhe der Rastnase
+// rast_breite = 8; // Breite der Rastnase
+// rast_tiefe = 0.5; // Wie weit die Nase herausragt
+
+// module rastQuader(hoehe) {
+
+//     rastVorichtung(hoehe, rast_breite, rast_tiefe, rast_hoehe, 
+//     deckel_innenbreite, deckel_innenlaenge,wandstaerke);
+// }
+
 
 // Deckel-Modul
 // Die geschlossene Seite (Deckeloberseite) liegt im Koordinatensystem unten (z=0)
 // Die Öffnung zeigt nach oben (z=cover_height_extra)
 // Der Schnitt zum Abtrennen der Überhöhe erfolgt nach dem Druck bei z=cover_height
 module deckel() {
-
- 
-    // Deckel aushöhlen
-      //difference() {
-        Hohlquader( deckel_aussenlaenge,  deckel_aussenbreite,  deckel_hoehe,  wandstaerke);
-       
-        //rastQuader(3);
-      //}
-}
-
-module rastQuader(hoehe) {
-
-    rastVorichtung(hoehe, rast_breite, rast_tiefe, rast_hoehe, 
-    deckel_innenbreite, deckel_innenlaenge,wandstaerke);
+    Hohlquader( deckel_aussenlaenge,  deckel_aussenbreite,  deckel_hoehe,  wandstaerke, obenOffen=false);
 }
 
 // Boden-Modul
 module boden() {
 
-  difference() {
-    union() {
-      // Außen: Hohlquader
-      cube([boden_aussenlaenge, boden_aussenbreite, boden_hoehe], center=false);
-
-      translate([-wandstaerke, -wandstaerke, deckelAuflagePosition]) {
-         cube([boden_aussenlaenge+deckelAuflageBreite, boden_aussenbreite+deckelAuflageBreite, deckelAuflageHoehe], center=false);
-
+    Hohlquader( boden_aussenlaenge, boden_aussenbreite, boden_hoehe,  wandstaerke,1){
+       translate([-wandstaerke, -wandstaerke, deckelAuflagePosition]) {
+        cube([boden_aussenlaenge+deckelAuflageBreite, boden_aussenbreite+deckelAuflageBreite, deckelAuflageHoehe], center=false);
       }
     }
-
-    // Innen: Seitenwände 1,5mm, Boden 0,5cm dick
-    translate([wandstaerke, wandstaerke, boden_bodenstaerke])
-      cube([boden_aussenlaenge - 2 * wandstaerke, boden_aussenbreite - 2 * wandstaerke, boden_hoehe], center=false);
-  }
 }
 
 if (zeige_deckel){

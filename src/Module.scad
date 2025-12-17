@@ -61,13 +61,19 @@ module VolumenKoerper(volumenTiefe, basisFlaeche = "xy", tiefenVersatz = 0) {
   }
 }
 
-module Hohlquader(aussenLaenge, aussenBreite, aussenHoehe, wandstaerke) {
+module Hohlquader(aussenLaenge, aussenBreite, aussenHoehe, wandstaerke, tiefe = 0, obenOffen = true  ) {
   difference() {
     // Außenquader
+    union() {
     cube([aussenLaenge, aussenBreite, aussenHoehe], center=false);
+    children();
+    }
     // Innenquader
-    translate([wandstaerke, wandstaerke, -wandstaerke])
-      cube([aussenLaenge - 2 * wandstaerke, aussenBreite - 2 * wandstaerke, aussenHoehe - wandstaerke], center=false);
+    tiefeFinal = tiefe == 0 ? wandstaerke:tiefe;
+    hoeheFinal = obenOffen == true ?  (tiefeFinal) : (aussenHoehe - tiefeFinal);
+    positionZ = obenOffen == true ? aussenHoehe-tiefeFinal : -tiefeFinal;
+    translate([wandstaerke, wandstaerke, positionZ])
+      cube([aussenLaenge - 2 * wandstaerke, aussenBreite - 2 * wandstaerke, hoeheFinal+2], center=false);
   }
 }
 
